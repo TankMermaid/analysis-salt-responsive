@@ -111,7 +111,7 @@ ord$type = jsd_metadata %$%
   if_else(diet == 'H' & day > 14, 'ND->HSD->ND', 'other')))
 
 # make the MDS plot
-p = ord %>% ggplot(aes(x=MDS1, y=MDS2)) +
+ord %>% ggplot(aes(x=MDS1, y=MDS2)) +
   geom_point(aes(color=type)) +
   theme_minimal() +
   scale_color_manual(values=c('black', 'orange', 'sky blue')) +
@@ -119,4 +119,4 @@ p = ord %>% ggplot(aes(x=MDS1, y=MDS2)) +
   theme(legend.position=(c(0.85, 0.85)),
         legend.background=element_rect(color='black'))
 
-ggsave('mds.pdf', plot=p, useDingbats=F)
+ggsave('mds.pdf', useDingbats=F)
