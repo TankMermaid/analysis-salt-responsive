@@ -9,7 +9,10 @@ library(vegan)
 # read in the OTU table
 otu_table = read_tsv('../data/rdp_g.melt') %>%
   # and compute relative abundances
-  group_by(sample) %>% mutate(ra=counts/sum(counts)) %>% ungroup() 
+  group_by(sample) %>%
+  mutate(sample_counts=sum(counts), ra=counts/sample_counts) %>%
+  ungroup() %>%
+  filter(sample_counts >= 1000)
 
 # cast this OTU table as a square matrix
 otu_matrix = otu_table %>%
@@ -42,19 +45,20 @@ jsd_table = otu_table %$%
   mutate(jsd=jsd(otu_matrix[[sample1]], otu_matrix[[sample2]])) %>%
   # bring in the metadata for each of the two samples
   left_join(sample_metadata, by=c('sample1'='sample')) %>%
-  left_join(sample_metadata, by=c('sample2'='sample'), suffix=c('1', '2')) %>%
-  # keep only JSDs for day 14 samples
-  filter(day1==14 & day2==14) %>%
-  # evaluate the "type" of the comparison (e.g., between two ND samples?)
-  mutate(type=factor(if_else(diet1!=diet2, 'ND vs. ND->HSD',
-                             if_else(diet1=='H', 'ND->HSD vs. ND->HSD', 'ND vs. ND')),
-                     levels=c('ND vs. ND', 'ND->HSD vs. ND->HSD', 'ND vs. ND->HSD')))
+  left_join(sample_metadata, by=c('sample2'='sample'), suffix=c('1', '2'))
 
-# create the plot
+# create the boxplot
 p = jsd_table %>%
   # only single-count each comparison (i.e., keep only one entry
   # per distinct pairs of samples)
   filter(sample1 < sample2) %>%
+  # keep only JSDs for day 14 samples
+  filter(day1==14 & day2==14) %>%
+  # evaluate the "type" of the comparison (e.g., between two ND samples?)
+  mutate(type=factor(if_else(diet1 != diet2, 'ND vs. ND->HSD',
+                     if_else(diet1 == 'H', 'ND->HSD vs. ND->HSD',
+                     'ND vs. ND')),
+                     levels=c('ND vs. ND', 'ND->HSD vs. ND->HSD', 'ND vs. ND->HSD'))) %>%
   ggplot(aes(y=jsd, x=type)) +
     geom_boxplot() +
     geom_point(position=position_jitter(h=0, w=0.1), cex=0.5) +
@@ -66,9 +70,8 @@ p = jsd_table %>%
 
 ggsave('jsd-group.pdf', width=89, height=80, units="mm", useDingbats=F)
 
-# create a minimal JSD matrix
+# create a JSD distance matrix
 jsd_matrix = jsd_table %>%
-  filter(diet1 %in% c('H', 'N') & diet2 %in% c('H', 'N')) %>%
   select(sample1, sample2, jsd) %>%
   spread(sample2, jsd)
 
@@ -86,6 +89,34 @@ jsd_matrix %<>%
   select(-sample1) %>%
   as.dist
 
+if (!all(jsd_metadata$sample == colnames(jsd_matrix))) {
+  stop('jsd_metadata samples do not match matrix')
+}
+
+# get the subset of the matrix corresponding only to the
+# day 14 comparisons
+is_day14 = jsd_metadata$day == 14
+jsd_metadata14 = jsd_metadata[is_day14, ]
+jsd_matrix14 = jsd_matrix %>% as.matrix %>% .[is_day14, is_day14] %>% as.dist
+
 # perform the PERMANOVA test and write its result to a file
-res = adonis(jsd_matrix ~ diet, data=jsd_metadata, strata=jsd_metadata$group, permutations=99999)
+res = adonis(jsd_matrix14 ~ diet, data=jsd_metadata14, strata=jsd_metadata14$group, permutations=99999)
 capture.output(res, file='results.txt')
+
+# perform the MDS ordination on the whole JSD matrix
+ord = metaMDSiter(jsd_matrix)$points %>% as_data_frame
+ord$type = jsd_metadata %$%
+  if_else(diet == 'N' | day < 0, 'ND',
+  if_else(diet == 'H' & day > 0 & day <= 14, 'ND->HSD',
+  if_else(diet == 'H' & day > 14, 'ND->HSD->ND', 'other')))
+
+# make the MDS plot
+p = ord %>% ggplot(aes(x=MDS1, y=MDS2)) +
+  geom_point(aes(color=type)) +
+  theme_minimal() +
+  scale_color_manual(values=c('black', 'orange', 'sky blue')) +
+  coord_fixed() +
+  theme(legend.position=(c(0.85, 0.85)),
+        legend.background=element_rect(color='black'))
+
+ggsave('mds.pdf', plot=p, useDingbats=F)
