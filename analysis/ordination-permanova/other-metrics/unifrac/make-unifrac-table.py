@@ -35,4 +35,4 @@ for weighted, fn in [[True, 'unifrac-w.dat'], [False, 'unifrac-uw.dat']]:
     res = fast_unifrac(tree, envs, weighted=weighted)
     matrix, samples = res['distance_matrix']
     df = pd.DataFrame(data=matrix, index=samples, columns=samples)
-    df.to_csv(fn, sep='\t')
+    df.to_csv(fn, sep='\t', index=False)
