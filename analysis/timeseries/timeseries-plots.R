@@ -2,8 +2,9 @@
 
 library(dplyr)
 library(ggplot2)
+library(readr)
 
-otu_table = read_tsv('../data/rdp_g.melt') %>%
+otu_table = read_tsv('../../data/rdp_g.melt') %>%
   # compute relative abundances
   group_by(sample) %>%
   mutate(sample_counts=sum(counts), ra=counts/sample_counts) %>%
