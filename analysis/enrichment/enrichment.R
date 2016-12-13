@@ -1,6 +1,7 @@
 #!/usr/bin/env Rscript
 
 library(dplyr)
+library(readr)
 
 otu_table = read_tsv('../../data/rdp_g.melt') %>%
   # add pseudocounts

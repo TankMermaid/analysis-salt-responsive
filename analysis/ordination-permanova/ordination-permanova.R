@@ -7,7 +7,7 @@ library(ggplot2)
 library(vegan)
 
 # read in the OTU table
-otu_table = read_tsv('../data/rdp_g.melt') %>%
+otu_table = read_tsv('../../data/rdp_g.melt') %>%
   # and compute relative abundances
   group_by(sample) %>%
   mutate(sample_counts=sum(counts), ra=counts/sample_counts) %>%
@@ -111,7 +111,7 @@ ord$type = jsd_metadata %$%
   if_else(diet == 'H' & day > 14, 'ND->HSD->ND', 'other')))
 
 # make the MDS plot
-ord %>% ggplot(aes(x=MDS1, y=MDS2)) +
+p = ord %>% ggplot(aes(x=MDS1, y=MDS2)) +
   geom_point(aes(color=type)) +
   theme_minimal() +
   scale_color_manual(values=c('black', 'orange', 'sky blue')) +
@@ -119,4 +119,4 @@ ord %>% ggplot(aes(x=MDS1, y=MDS2)) +
   theme(legend.position=(c(0.85, 0.85)),
         legend.background=element_rect(color='black'))
 
-ggsave('mds.pdf', useDingbats=F)
+ggsave('mds.pdf', plot=p, useDingbats=F)
