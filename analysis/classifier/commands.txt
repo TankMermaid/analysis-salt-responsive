@@ -1,4 +1,4 @@
-slime2.py ../data/rdp_g.counts klasses.txt --normalize --tag ab_e7 ab -n 10000000
-slime2.py ../data/rdp_g.counts klasses.txt --normalize --tag ab_e7-2 ab -n 10000000
-slime2.py ../data/rdp_g.counts klasses.txt --normalize --tag rf_e6 rf -n 1000000
-slime2.py ../data/rdp_g.counts klasses.txt --normalize --tag rf_e6-2 rf -n 1000000
+slime2.py ../../data/rdp_g.counts klasses.txt --normalize --tag ab_e7 ab -n 10000000
+slime2.py ../../data/rdp_g.counts klasses.txt --normalize --tag ab_e7-2 ab -n 10000000
+slime2.py ../../data/rdp_g.counts klasses.txt --normalize --tag rf_e6 rf -n 1000000
+slime2.py ../../data/rdp_g.counts klasses.txt --normalize --tag rf_e6-2 rf -n 1000000
