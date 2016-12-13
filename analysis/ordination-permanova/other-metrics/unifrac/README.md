@@ -1,0 +1,3 @@
+- `rdp_g_representative-sequences.fa` are the representative sequences for each OTU. An OTU's representative sequence is the most abundant sequence assigned to that OTU.
+- `tree.newick` is a tree of the representative sequences made by aligning the sequences with PyNAST and using FastTree.
+- `make_unifrac_tables.py` is a Python 2 script that uses the OTU table and the tree of sequences to compute the weighted and unweighted UniFrac distances
