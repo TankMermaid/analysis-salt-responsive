@@ -104,7 +104,9 @@ res = adonis(jsd_matrix14 ~ diet, data=jsd_metadata14, strata=jsd_metadata14$gro
 capture.output(res, file='results.txt')
 
 # perform the MDS ordination on the whole JSD matrix
-ord = metaMDSiter(jsd_matrix)$points %>% as_data_frame
+ord = metaMDSiter(jsd_matrix, try=1000, trymax=1000, autotransform=FALSE, maxit=1000) %$%
+  points %>%
+  as_data_frame
 ord$type = jsd_metadata %$%
   if_else(diet == 'N' | day < 0, 'ND',
   if_else(diet == 'H' & day > 0 & day <= 14, 'ND->HSD',
@@ -112,11 +114,12 @@ ord$type = jsd_metadata %$%
 
 # make the MDS plot
 p = ord %>% ggplot(aes(x=MDS1, y=MDS2)) +
-  geom_point(aes(color=type)) +
+  geom_point(aes(color=type, fill=type), shape=21, size=2, stroke=1) +
   theme_minimal() +
-  scale_color_manual(values=c('black', 'orange', 'sky blue')) +
+  scale_color_manual(values=c('#000000', '#808080', '#D3D3D3')) +
+  scale_fill_manual(values=c('#FFFFFF', '#808080', '#D3D3D3')) +
   coord_fixed() +
-  theme(legend.position=(c(0.85, 0.85)),
+  theme(legend.position=(c(0.15, 0.15)),
         legend.background=element_rect(color='black'))
 
 ggsave('mds.pdf', plot=p, useDingbats=F)
