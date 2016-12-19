@@ -23,19 +23,18 @@ plot_timeseries = function(this.otu) {
             if_else(diet == 'N', -size, size),
             0.0)
   }
-  boxplot_width = if_else(all_data$day %in% c(-1, 14), 0.5, 1.0)
 
   all_data %>%
-    mutate(day=as.factor(day),
-           diet=factor(diet, c('N', 'H')),
-           point_x=as.numeric(day) + point_offset(diet, day)) %>% 
-    ggplot(aes(x=factor(day), y=ra,  fill=diet)) +
+    select(day, diet, ra) %>%
+    mutate(diet=factor(diet, levels=c('N', 'H'))) %>%
+    mutate(point_x=as.numeric(as.factor(day)) + point_offset(diet, day)) %>%
+    ggplot(aes(x=as.factor(day), y=ra, fill=diet)) +
       #stat_boxplot(data=hsd_data, outlier.shape=NA, color='orange', fill=NA) +
       #stat_boxplot(data=nd_data, outlier.shape=NA, color='black', fill=NA) +
       #geom_point(data=hsd_data, color='orange', position=position_jitter(h=0, w=0.1)) +
       #geom_point(data=nd_data, color='black', position=position_jitter(h=0, w=0.1)) +
       #stat_boxplot(outlier.shape=NA, fill=NA) +
-      stat_boxplot(outlier.shape=NA, width=boxplot_width) +
+      stat_boxplot(outlier.shape=NA) +
       geom_point(aes(x=point_x), position=position_jitter(h=0, w=0.1)) +
       xlab('day') +
       ylab('relative abundance') +
@@ -62,7 +61,7 @@ otus = c('Root;Bacteria;Firmicutes;Bacilli;Lactobacillales;Lactobacillaceae;Lact
          'Root;Bacteria;Firmicutes;Clostridia',
          'Root;Bacteria;Bacteroidetes;Bacteroidia;Bacteroidales;Rikenellaceae;Alistipes')
 
-p = plot_timeseries(otu[1])
+p = plot_timeseries_day14_ymax(otu[1])
 p
 stop("it's cool")
 
