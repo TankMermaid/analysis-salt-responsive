@@ -13,29 +13,20 @@ otu_table = read_tsv('../../data/rdp_g.melt') %>%
   filter(sample_counts >= 1000)
 
 plot_timeseries = function(this.otu) {
-  # create two separate data sets for plotting
-  all_data = otu_table %>% filter(otu == this.otu, day <= 17)
-  hsd_data = all_data %>% filter(diet == 'H')
-  nd_data = all_data %>% filter(diet == 'N')
-  
   point_offset = function(diet, day, size=0.2) {
     if_else(day %in% c(-1, 14),
             if_else(diet == 'N', -size, size),
             0.0)
   }
 
-  all_data %>%
+  otu_table %>%
+    filter(day <= 17, otu==this.otu) %>% 
     select(day, diet, ra) %>%
     mutate(diet=factor(diet, levels=c('N', 'H'))) %>%
     mutate(point_x=as.numeric(as.factor(day)) + point_offset(diet, day)) %>%
     ggplot(aes(x=as.factor(day), y=ra, fill=diet)) +
-      #stat_boxplot(data=hsd_data, outlier.shape=NA, color='orange', fill=NA) +
-      #stat_boxplot(data=nd_data, outlier.shape=NA, color='black', fill=NA) +
-      #geom_point(data=hsd_data, color='orange', position=position_jitter(h=0, w=0.1)) +
-      #geom_point(data=nd_data, color='black', position=position_jitter(h=0, w=0.1)) +
-      #stat_boxplot(outlier.shape=NA, fill=NA) +
       stat_boxplot(outlier.shape=NA) +
-      geom_point(aes(x=point_x), position=position_jitter(h=0, w=0.1)) +
+      geom_point(aes(x=point_x), position=position_jitter(h=0, w=0.15), shape=21) +
       xlab('day') +
       ylab('relative abundance') +
       scale_color_manual(values=c('gray', 'black')) +
@@ -60,10 +51,6 @@ otus = c('Root;Bacteria;Firmicutes;Bacilli;Lactobacillales;Lactobacillaceae;Lact
          'Root;Bacteria;Bacteroidetes',
          'Root;Bacteria;Firmicutes;Clostridia',
          'Root;Bacteria;Bacteroidetes;Bacteroidia;Bacteroidales;Rikenellaceae;Alistipes')
-
-p = plot_timeseries_day14_ymax(otu[1])
-p
-stop("it's cool")
 
 for (otu in otus) {
   # make a short name (just the last rank) to use in the filename
