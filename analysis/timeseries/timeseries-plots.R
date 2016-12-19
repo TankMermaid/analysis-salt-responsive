@@ -17,15 +17,30 @@ plot_timeseries = function(this.otu) {
   all_data = otu_table %>% filter(otu == this.otu, day <= 17)
   hsd_data = all_data %>% filter(diet == 'H')
   nd_data = all_data %>% filter(diet == 'N')
+  
+  point_offset = function(diet, day, size=0.2) {
+    if_else(day %in% c(-1, 14),
+            if_else(diet == 'N', -size, size),
+            0.0)
+  }
+  boxplot_width = if_else(all_data$day %in% c(-1, 14), 0.5, 1.0)
 
   all_data %>%
-    ggplot(aes(x=factor(day), y=ra, color=diet)) +
-      stat_boxplot(data=hsd_data, outlier.shape=NA, color='orange', fill=NA) +
-      stat_boxplot(data=nd_data, outlier.shape=NA, color='black', fill=NA) +
-      geom_point(data=hsd_data, color='orange', position=position_jitter(h=0, w=0.1)) +
-      geom_point(data=nd_data, color='black', position=position_jitter(h=0, w=0.1)) +
+    mutate(day=as.factor(day),
+           diet=factor(diet, c('N', 'H')),
+           point_x=as.numeric(day) + point_offset(diet, day)) %>% 
+    ggplot(aes(x=factor(day), y=ra,  fill=diet)) +
+      #stat_boxplot(data=hsd_data, outlier.shape=NA, color='orange', fill=NA) +
+      #stat_boxplot(data=nd_data, outlier.shape=NA, color='black', fill=NA) +
+      #geom_point(data=hsd_data, color='orange', position=position_jitter(h=0, w=0.1)) +
+      #geom_point(data=nd_data, color='black', position=position_jitter(h=0, w=0.1)) +
+      #stat_boxplot(outlier.shape=NA, fill=NA) +
+      stat_boxplot(outlier.shape=NA, width=boxplot_width) +
+      geom_point(aes(x=point_x), position=position_jitter(h=0, w=0.1)) +
       xlab('day') +
       ylab('relative abundance') +
+      scale_color_manual(values=c('gray', 'black')) +
+      scale_fill_manual(values=c('white', 'gray')) +
       theme_minimal()
 }
 
@@ -46,6 +61,10 @@ otus = c('Root;Bacteria;Firmicutes;Bacilli;Lactobacillales;Lactobacillaceae;Lact
          'Root;Bacteria;Bacteroidetes',
          'Root;Bacteria;Firmicutes;Clostridia',
          'Root;Bacteria;Bacteroidetes;Bacteroidia;Bacteroidales;Rikenellaceae;Alistipes')
+
+p = plot_timeseries(otu[1])
+p
+stop("it's cool")
 
 for (otu in otus) {
   # make a short name (just the last rank) to use in the filename
